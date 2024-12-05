@@ -1,9 +1,8 @@
 package se.lexicon.exceptions.workshop.fileIO;
 
-import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -22,17 +21,34 @@ public class CSVReader_Writer {
         BufferedReader reader = null;
         List<String> names = null;
 
-
+        try{
         reader = Files.newBufferedReader(Paths.get("firstname_males.txt"));
         names = reader.lines()
                 .flatMap(line -> Stream.of(line.split(",")))
                 .collect(Collectors.toList());
 
         return names;
-    }
+    } catch (NoSuchFileException e){
+            System.out.println("nope, nothing found.");
+        }
+        catch (IOException | SecurityException e) {
+            System.err.println("something went wrong");
+        }
+        finally {
+            try{
+                if (reader != null) {
+                    reader.close();
+                }
+            }
+            catch (IOException ex) {
+                ex.printStackTrace();
+            }
+        }
+        return names;
+        }
 
 
-    /**
+        /**
      * This method getFemaleFirstNames should make use of a try-catch with resources
      *
      * @return List<String>of female firstnames
@@ -41,10 +57,21 @@ public class CSVReader_Writer {
 
         List<String> names = null;
 
-        BufferedReader reader = Files.newBufferedReader(Paths.get("firstname_female.txt"))
-        names = reader.lines()
-                .flatMap(line -> Stream.of(line.split(",")))
-                .collect(Collectors.toList());
+        try (
+            BufferedReader reader = Files.newBufferedReader(Paths.get("firstname_female.txt")))
+        {
+
+            names = reader.lines()
+                    .flatMap(line -> Stream.of(line.split(",")))
+                    .collect(Collectors.toList());
+        }
+        catch (NoSuchFileException e){
+            System.out.println("Error.");
+        }
+        catch (IOException e){
+            System.out.println("Error Again.");
+            e.printStackTrace();
+        }
 
         return names;
     }
@@ -60,7 +87,7 @@ public class CSVReader_Writer {
      */
     public static List<String> getLastNames() throws IOException {
 
-        List<String> names = null;
+        List<String> names;
         BufferedReader reader = null;
 
         try {
@@ -69,8 +96,8 @@ public class CSVReader_Writer {
                     .flatMap(line -> Stream.of(line.split(",")))
                     .collect(Collectors.toList());
 
-
-        } finally {
+        }
+        finally {
             if (reader != null) {
                 reader.close();
             }
@@ -81,32 +108,47 @@ public class CSVReader_Writer {
 
     public static void saveLastNames(List<String> lastNames) {
 
-        BufferedWriter writer = Files.newBufferedWriter(Paths.get("lastnames.txt"));
-        for (String toWrite : lastNames) {
-            writer.append(toWrite + ",");
+        try (
+                BufferedWriter writer = Files.newBufferedWriter(Paths.get("lastnames.txt"))) {
+            for (String toWrite : lastNames) {
+                writer.append(toWrite + ",");
+            }
+            writer.flush();
+        } catch (IOException e) {
+            System.out.println("error");
+            e.printStackTrace();
+
         }
-        writer.flush();
     }
 
-    public static void saveFemaleNames(List<String> femaleNames) {
-        BufferedWriter writer = Files.newBufferedWriter(Paths.get("firstname_female.txt"));
-        for (String toWrite : femaleNames) {
-            writer.append(toWrite + ",");
+        public static void saveFemaleNames (List < String > femaleNames) {
+        try (
+            BufferedWriter writer = Files.newBufferedWriter(Paths.get("firstname_female.txt"))){
+
+            for (String toWrite : femaleNames) {
+                writer.append(toWrite + ",");
+            }
+            writer.flush();
+        }catch (IOException e){
+            System.out.println("error.");
+            e.printStackTrace();
         }
-        writer.flush();
 
     }
 
+        public static void saveMaleNames (List < String > maleNames) {
+        try(
+            BufferedWriter writer = Files.newBufferedWriter(Paths.get("firstname_males.txt"))) {
 
-    public static void saveMaleNames(List<String> maleNames) {
-        BufferedWriter writer = Files.newBufferedWriter(Paths.get("firstname_males.txt"));
-        for (String toWrite : maleNames) {
-            writer.append(toWrite + ",");
+            for (String toWrite : maleNames) {
+                writer.append(toWrite + ",");
+            }
+            writer.flush();
+        }catch (IOException e){
+            System.out.println("error.");
+            e.printStackTrace();
         }
-        writer.flush();
-
 
     }
-
 
 }
